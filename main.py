@@ -55,10 +55,11 @@ def binary(url, model):
     
     X = []
     cropped_images = []
+
     
     # 이미지가 명백히 gif 형식일 경우 -> 무조건 제거한다.
     if ".gif" in url:
-        return "absolute"
+        return "ad"
     # 이미지가 명백히 .svg 형식일 경우 -> ?
     elif ".svg" in url:
         return "non-ad"
@@ -68,22 +69,27 @@ def binary(url, model):
             image_nparray = np.asarray(bytearray(requests.get(url, verify=False).content), dtype=np.uint8)
         # 이미지 경로가 잘못된 경우 제거한다.
         except:
-            return "absolute"
+            return "ad"
+        
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_nparray.size == 0:
-        return "absolute"
+        return "ad"
+    
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
+    
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_bgr is None:
-        return "absolute"
+        return "ad"
+
+    # 이미지가 너무 작은 경우 -> 무조건 제거한다.
+    if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
+        return "ad"
+
+    
     # BGR에서 RGB로 변경
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     
-    # 이미지가 너무 작은 경우 -> 무조건 제거한다.
-    if image_rgb.shape[0] < 64 | image_rgb.shape[1] < 64:
-        return "absolute"
-
     img = cv2.resize(image_rgb, (image_width, image_height), interpolation=cv2.INTER_LINEAR)
 
     cropped_images = image_crop(img, image_width, image_height, image_width // 2, image_height //2)
@@ -108,9 +114,9 @@ def binary(url, model):
             not_ad += 1
     
     if is_ad > not_ad:
-        return 0
+        return "ad"
     else:
-        return 1
+        return "non-ad"
         
 @app.route("/",methods=['GET','POST'])
 def check():
@@ -119,12 +125,9 @@ def check():
         url = request.args.get('url')
         result = binary(url, model)
         
-        if result == 0:           ## result 수정
+        if result == "ad":           ## result 수정
             config = {"class": "ad"}
-        elif result == "absolute":
-            config = {"class": "absolute"}
-        elif result == "non-ad":
-            config = {"class": "non-ad"}
+
         else:
             config = {"class": "non-ad"}
 
