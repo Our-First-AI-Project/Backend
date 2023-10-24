@@ -69,22 +69,22 @@ def binary(url, model):
             image_nparray = np.asarray(bytearray(requests.get(url, verify=False).content), dtype=np.uint8)
         # 이미지 경로가 잘못된 경우 제거한다.
         except:
-            return "ad"
+            return "path-error"
         
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_nparray.size == 0:
-        return "ad"
+        return "open-size-zero-error"
     
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
     
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_bgr is None:
-        return "ad"
+        return "open-none-error"
 
     # 이미지가 너무 작은 경우 -> 무조건 제거한다.
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
-        return "ad"
+        return "small-image-error"
 
     
     # BGR에서 RGB로 변경
@@ -124,16 +124,25 @@ def check():
         
         url = request.args.get('url')
         result = binary(url, model)
-        
-        if result == "ad":           ## result 수정
-            config = {"class": "ad"}
 
+        if (result.endswith("error")):
+            config = {"class": result}
+            response = json.dumps(config, ensure_ascii=False)
+            return response, 500
         else:
-            config = {"class": "non-ad"}
+            config = {"class": result}
+            response = json.dumps(config, ensure_ascii=False)
+            return response, 200
+        
+        # if result == "ad":           ## result 수정
+        #     config = {"class": "ad"}
 
-        result = json.dumps(config, ensure_ascii=False)
+        # else:
+        #     config = {"class": "non-ad"}
+
+        # result = json.dumps(config, ensure_ascii=False)
         
         return result
 
 if __name__ == '__main__':
-    app.run(debug=False, host= '0.0.0.0', port='5000')
+    app.run(debug=False, host= '0.0.0.0', port='3000')
