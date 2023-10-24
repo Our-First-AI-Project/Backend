@@ -76,7 +76,11 @@ def image_open(url):
     try:
         # data:image 형식의 이미지를 가져오는 경우
         if (url.startswith("data:image")):
-            encoded_data = url.split(',')[1]
+            encoded_data = url.split(',')[1].replace(" ", "").replace("\n", "")
+            if (len(encoded_data) % 4 != 0):
+                print("🥳 : ", len(encoded_data) , " : ", len(encoded_data) % 4)
+                encoded_data += "=" * (4 - len(encoded_data) % 4)
+                print("✅ : ", len(encoded_data) , " : ", len(encoded_data) % 4)
             image_data = base64.b64decode(encoded_data)
             image = Image.open(io.BytesIO(image_data))
             return image
@@ -84,9 +88,12 @@ def image_open(url):
         image = requests.get(url, verify=False).content
         return image
     except Exception as e:
+        print("ERROR : ", e)
         if (str(e).startswith("cannot identify image file")):
             # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다.
             return "non-ad"
+        elif (str(e).startswith("Invalid base64-encoded string:")):
+            print("💦 : ", len(encoded_data) , " : ", len(encoded_data) % 4)
         return "path-error"
 
 def binary(url, model):
