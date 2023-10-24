@@ -60,7 +60,7 @@ def binary(url, model):
     # 제거하는 경우 2) 에러가 아닌 기타 상황 : code num.501
     # 이미지가 명백히 gif 형식일 경우 -> 무조건 제거한다.
     if ".gif" in url:
-        return make_response("이미지가 .gif 포맷입니다.", 501)
+        return 1 #  make_response("이미지가 .gif 포맷입니다.", 501)
     # 이미지가 명백히 .svg 형식일 경우 -> ?
     elif ".svg" in url:
         return "non-ad"
@@ -70,22 +70,22 @@ def binary(url, model):
             image_nparray = np.asarray(bytearray(requests.get(url, verify=False).content), dtype=np.uint8)
         # 이미지 경로가 잘못된 경우 제거한다.
         except:
-            return make_response("err: 이미지 경로가 잘못되었습니다.", 500)
+            return 2 # make_response("err: 이미지 경로가 잘못되었습니다.", 500)
         
     # 이미지를 가져올 수 없는 경우 제거
     if image_nparray.size == 0:
-        return make_response("err: 이미지를 가져올 수 없습니다.", 500)
+        return 3 # make_response("err: 이미지를 가져올 수 없습니다.", 500)
     
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
     
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_bgr is None:
-        return make_response("err: 이미지를 열 수 없습니다.", 500)
+        return 4 # make_response("err: 이미지를 열 수 없습니다.", 500)
 
     # 이미지가 너무 작은 경우 -> 무조건 제거한다.
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
-        return make_response("이미지 사이즈가 64*64 미만으로 너무 작습니다.", 501)
+        return 5 # make_response("이미지 사이즈가 64*64 미만으로 너무 작습니다.", 501)
 
     
     # BGR에서 RGB로 변경
@@ -127,8 +127,26 @@ def check():
         if result == "ad":           ## result 수정
             config = {"class": "ad"}
 
-        else:
+        elif result == "non_ad":
             config = {"class": "non-ad"}
+
+        elif result == 1:
+            return make_response("이미지가 .gif 포맷입니다.", 501)
+
+        elif result == 2:
+            return make_response("err: 이미지 경로가 잘못되었습니다.", 500)
+
+        elif result == 3:
+            return make_response("err: 이미지를 가져올 수 없습니다.", 500)
+
+        elif result == 4:
+            return make_response("err: 이미지를 열 수 없습니다.", 500)
+
+        elif result == 5:
+            return make_response("이미지 사이즈가 64*64 미만으로 너무 작습니다.", 501)
+
+        else:
+            config = {"exception : neither class ad nor non-ad!"}
 
         result = json.dumps(config, ensure_ascii=False)
         
