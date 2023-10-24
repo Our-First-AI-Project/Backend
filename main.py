@@ -151,14 +151,12 @@ def check():
         
         url = request.args.get('url')
         result = binary(url, model)
+        response_body = {"class": result}
+        response = json.dumps(response_body, ensure_ascii=False)
 
         if (result.endswith("error")):
-            config = {"class": result}
-            response = json.dumps(config, ensure_ascii=False)
             return response, 500
         else:
-            config = {"class": result}
-            response = json.dumps(config, ensure_ascii=False)
             return response, 200
         
         # if result == "ad":           ## result 수정
