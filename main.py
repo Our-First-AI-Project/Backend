@@ -18,6 +18,12 @@ import urllib.request
 import requests
 from io import BytesIO
 
+import urllib3
+# InsecureRequestWarning 경고 제거
+# https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
@@ -45,6 +51,31 @@ def image_crop(file, image_width, image_height, cropped_width, cropped_height):
     
     return cropped_images
 
+"""
+image_open : url을 통해서 이미지를 여는 함수
+Args :
+    url : 이미지를 가져올 url
+Returns :
+    image : 이미지
+    "ad" : gif 형식의 이미지인 경우 -> Not Error
+    "non-ad" : svg 형식의 이미지인 경우 -> Not Error
+    "path-error" : url 경로 에러 -> Error
+"""
+def image_open(url):
+    if (url.endswith(".gif")):
+        # 이미지가 gif 형식일 경우 -> 제거한다.
+        # 형식 변환을 할 수 있을지 찾아보기
+        return "ad"
+    if (url.endswith(".svg")):
+        # 이미지가 svg 형식일 경우 -> 기호일 가능성이 높으므로 제거하지 않는다.
+        return "non-ad"
+    # 이 외의 경우에는 이미지를 가져온다.
+    try:
+        image = requests.get(url, verify=False).content
+        return image
+    except:
+        return "path-error"
+
 def binary(url, model):
     
     image_width = 180
@@ -56,20 +87,16 @@ def binary(url, model):
     X = []
     cropped_images = []
 
+    preprocess_result_type = ["ad", "non-ad", "path-error", "open-size-zero-error", "open-none-error", "small-image-error"];
+
+    # 이미지를 가져온다.
+    image_open_result = image_open(url)
+    if (image_open_result in preprocess_result_type):
+        return image_open_result
     
-    # 이미지가 명백히 gif 형식일 경우 -> 무조건 제거한다.
-    if ".gif" in url:
-        return "ad"
-    # 이미지가 명백히 .svg 형식일 경우 -> ?
-    elif ".svg" in url:
-        return "non-ad"
-    # 이 외의 경우에는 이미지를 연다. (binary)
-    else:
-        try:
-            image_nparray = np.asarray(bytearray(requests.get(url, verify=False).content), dtype=np.uint8)
-        # 이미지 경로가 잘못된 경우 제거한다.
-        except:
-            return "path-error"
+    # ?
+    image_nparray = np.asarray(bytearray(image_open_result), dtype=np.uint8)
+
         
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_nparray.size == 0:
