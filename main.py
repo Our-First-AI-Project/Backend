@@ -159,14 +159,6 @@ def check():
         else:
             return response, 200
         
-        # if result == "ad":           ## result 수정
-        #     config = {"class": "ad"}
-
-        # else:
-        #     config = {"class": "non-ad"}
-
-        # result = json.dumps(config, ensure_ascii=False)
-        
         return result
 
 if __name__ == '__main__':
