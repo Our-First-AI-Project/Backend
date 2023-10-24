@@ -16,7 +16,10 @@ import numpy as np
 import cv2
 import urllib.request
 import requests
-from io import BytesIO
+# from io import BytesIO
+import io
+import base64
+from PIL import Image
 
 import urllib3
 # InsecureRequestWarning 경고 제거
@@ -71,9 +74,16 @@ def image_open(url):
         return "non-ad"
     # 이 외의 경우에는 이미지를 가져온다.
     try:
+        # data:image 형식의 이미지를 가져오는 경우
+        if (url.startswith("data:image")):
+            encoded_data = url.split(',')[1]
+            image_data = base64.b64decode(encoded_data)
+            image = Image.open(io.BytesIO(image_data))
+            return image
+        # 일반적인 url 형식의 이미지를 가져오는 경우
         image = requests.get(url, verify=False).content
         return image
-    except:
+    except Exception as e:
         return "path-error"
 
 def binary(url, model):
