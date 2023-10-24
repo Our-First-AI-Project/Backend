@@ -1,6 +1,6 @@
 """웹 라이브러리"""
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import json
@@ -56,10 +56,11 @@ def binary(url, model):
     X = []
     cropped_images = []
 
-    
+    # 제거하는 경우 1) 에러 발생 : code num.500
+    # 제거하는 경우 2) 에러가 아닌 기타 상황 : code num.501
     # 이미지가 명백히 gif 형식일 경우 -> 무조건 제거한다.
     if ".gif" in url:
-        return "ad"
+        return make_response("이미지가 .gif 포맷입니다.", 501)
     # 이미지가 명백히 .svg 형식일 경우 -> ?
     elif ".svg" in url:
         return "non-ad"
@@ -69,22 +70,22 @@ def binary(url, model):
             image_nparray = np.asarray(bytearray(requests.get(url, verify=False).content), dtype=np.uint8)
         # 이미지 경로가 잘못된 경우 제거한다.
         except:
-            return "ad"
+            return make_response("err: 이미지 경로가 잘못되었습니다.", 500)
         
-    # 보안 문제로 인해 열리지 않는 경우 제거
+    # 이미지를 가져올 수 없는 경우 제거
     if image_nparray.size == 0:
-        return "ad"
+        return make_response("err: 이미지를 가져올 수 없습니다.", 500)
     
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
     
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_bgr is None:
-        return "ad"
+        return make_response("err: 이미지를 열 수 없습니다.", 500)
 
     # 이미지가 너무 작은 경우 -> 무조건 제거한다.
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
-        return "ad"
+        return make_response("이미지 사이즈가 64*64 미만으로 너무 작습니다.", 501)
 
     
     # BGR에서 RGB로 변경
@@ -98,8 +99,6 @@ def binary(url, model):
         data = np.asarray(cropped_image)
         X.append(data)
         
-    #data = np.asarray(img)
-    #X.append(data)
 
     X = np.array(X)
     X = X.astype(float) / 255
