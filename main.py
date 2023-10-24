@@ -84,6 +84,9 @@ def image_open(url):
         image = requests.get(url, verify=False).content
         return image
     except Exception as e:
+        if (str(e).startswith("cannot identify image file")):
+            # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다.
+            return "non-ad"
         return "path-error"
 
 def binary(url, model):
