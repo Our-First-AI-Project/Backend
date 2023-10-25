@@ -167,9 +167,8 @@ def binary(url, model):
         
 @app.route("/",methods=['GET','POST'])
 def check():
-    if request.method=='GET':
-        
-        url = request.args.get('url')
+    if request.method=='POST':
+        url = request.get_json()['url']
         result = binary(url, model)
         response_body = {"class": result}
         response = json.dumps(response_body, ensure_ascii=False)
@@ -178,8 +177,7 @@ def check():
             return response, 500
         else:
             return response, 200
-        
-        return result
+    return "error", 405
 
 if __name__ == '__main__':
     app.run(debug=False, host= '0.0.0.0', port='3000')
