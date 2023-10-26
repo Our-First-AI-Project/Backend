@@ -65,11 +65,11 @@ Returns :
     "path-error" : url 경로 에러 -> Error
 """
 def image_open(url):
-    if (url.endswith(".gif")):
+    if (".gif" in url):
         # 이미지가 gif 형식일 경우 -> 제거한다.
         # 형식 변환을 할 수 있을지 찾아보기
         return "ad"
-    if (url.endswith(".svg")):
+    if (".svg" in url):
         # 이미지가 svg 형식일 경우 -> 기호일 가능성이 높으므로 제거하지 않는다.
         return "non-ad"
     # 이 외의 경우에는 이미지를 가져온다.
@@ -78,9 +78,7 @@ def image_open(url):
         if (url.startswith("data:image")):
             encoded_data = url.split(',')[1].replace(" ", "").replace("\n", "")
             if (len(encoded_data) % 4 != 0):
-                print("🥳 : ", len(encoded_data) , " : ", len(encoded_data) % 4)
                 encoded_data += "=" * (4 - len(encoded_data) % 4)
-                print("✅ : ", len(encoded_data) , " : ", len(encoded_data) % 4)
             image_data = base64.b64decode(encoded_data)
             image = Image.open(io.BytesIO(image_data))
             return image
@@ -88,12 +86,9 @@ def image_open(url):
         image = requests.get(url, verify=False).content
         return image
     except Exception as e:
-        print("ERROR : ", e)
         if (str(e).startswith("cannot identify image file")):
             # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다.
             return "non-ad"
-        elif (str(e).startswith("Invalid base64-encoded string:")):
-            print("💦 : ", len(encoded_data) , " : ", len(encoded_data) % 4)
         return "path-error"
 
 def binary(url, model):
