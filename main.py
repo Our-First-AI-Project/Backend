@@ -131,9 +131,9 @@ def binary(url, model):
     if image_bgr is None:
         return "non-ad"
 
-    # 이미지가 너무 작은 경우 -> 무조건 제거한다.
+    # 이미지가 너무 작은 경우 -> 제거하지 않는다. (small-image-error)
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
-        return "small-image-error"
+        return "non-ad"
 
     
     # BGR에서 RGB로 변경
