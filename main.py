@@ -118,9 +118,10 @@ def binary(url, model):
     # ?
     image_nparray = np.asarray(binary_image_data, dtype=np.uint8)
         
-    # 보안 문제로 인해 열리지 않는 경우 제거
+    # 응답이 204 No Content인 경우 -> 제거하지 않는다. (open-size-zero-error)
+    # google adsense에서 가져온 이미지가 204 No Content인 경우가 있음
     if image_nparray.size == 0:
-        return "open-size-zero-error"
+        return "non-ad"
     
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
