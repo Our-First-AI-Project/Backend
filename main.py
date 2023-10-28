@@ -126,9 +126,10 @@ def binary(url, model):
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
     
-    # 보안 문제로 인해 열리지 않는 경우 제거
+    # 이미지가 확인되지 않는 경우 -> 제거하지 않는다. (open-none-error)
+    # 몇몇 url에서 이미지가 아니거나, 1*1 픽셀의 이미지를 가져오는 경우가 있음
     if image_bgr is None:
-        return "open-none-error"
+        return "non-ad"
 
     # 이미지가 너무 작은 경우 -> 무조건 제거한다.
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
