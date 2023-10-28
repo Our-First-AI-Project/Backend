@@ -92,10 +92,10 @@ def image_to_binary(url):
         return bytearray(image)
     
     except Exception as e:
-        if (str(e).startswith("cannot identify image file")):
-            # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다.
-            return "non-ad"
-        return "path-error"
+        # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다. (path-error)
+        # data:image 형식의 이미지에서 열 수 없는 경우가 있음
+        # 잘못된 경로를 입력하는 경우는 아직 발견되지 않음.
+        return "non-ad"
 
 def binary(url, model):
     
