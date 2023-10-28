@@ -64,13 +64,16 @@ Returns :
     "non-ad" : svg 형식의 이미지인 경우 -> Not Error
     "path-error" : url 경로 에러 -> Error
 """
-def image_open(url):
+def image_to_binary(url):
     if (".gif" in url):
         # 이미지가 gif 형식일 경우 -> 제거한다.
         # 형식 변환을 할 수 있을지 찾아보기
         return "ad"
     if (".svg" in url):
         # 이미지가 svg 형식일 경우 -> 기호일 가능성이 높으므로 제거하지 않는다.
+        return "non-ad"
+    if (".htm" in url):
+        # html 형식일 경우 -> 제거하면 안된다.
         return "non-ad"
     # 이 외의 경우에는 이미지를 가져온다.
     try:
@@ -80,11 +83,14 @@ def image_open(url):
             if (len(encoded_data) % 4 != 0):
                 encoded_data += "=" * (4 - len(encoded_data) % 4)
             image_data = base64.b64decode(encoded_data)
-            image = Image.open(io.BytesIO(image_data))
-            return image
+            # bytearry 형식으로 변환
+            return bytearray(image_data)
+
         # 일반적인 url 형식의 이미지를 가져오는 경우
         image = requests.get(url, verify=False).content
-        return image
+        # bytearry 형식으로 변환
+        return bytearray(image)
+    
     except Exception as e:
         if (str(e).startswith("cannot identify image file")):
             # 비어있거나 열 수 없는 이미지 파일인 경우 -> 제거하지 않는다.
@@ -105,13 +111,12 @@ def binary(url, model):
     preprocess_result_type = ["ad", "non-ad", "path-error", "open-size-zero-error", "open-none-error", "small-image-error"];
 
     # 이미지를 가져온다.
-    image_open_result = image_open(url)
-    if (image_open_result in preprocess_result_type):
-        return image_open_result
+    binary_image_data = image_to_binary(url)
+    if (binary_image_data in preprocess_result_type):
+        return binary_image_data
     
     # ?
-    image_nparray = np.asarray(bytearray(image_open_result), dtype=np.uint8)
-
+    image_nparray = np.asarray(binary_image_data, dtype=np.uint8)
         
     # 보안 문제로 인해 열리지 않는 경우 제거
     if image_nparray.size == 0:
