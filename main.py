@@ -92,15 +92,16 @@ def binary(url, model):
     
     image_width = 180
     image_height = 180
+
     is_ad = 0
     not_ad = 0
+
     X = []
     cropped_images = []
 
-    preprocess_result_type = ["ad", "non-ad", "path-error", "open-size-zero-error", "open-none-error", "small-image-error"];
-
     binary_image_data = image_to_binary(url)
-    if (binary_image_data in preprocess_result_type):
+
+    if (binary_image_data == "ad" or binary_image_data == "non-ad"):
         return binary_image_data
 
     image_nparray = np.asarray(binary_image_data, dtype=np.uint8)
@@ -151,16 +152,16 @@ def binary(url, model):
 @app.route("/",methods=['GET','POST'])
 def check():
     if request.method=='POST':
-        url = request.get_json()['url']
-        result = binary(url, model)
-        response_body = {"class": result}
-        response = json.dumps(response_body, ensure_ascii=False)
-
-        if (result.endswith("error")):
-            return response, 500
-        else:
+        try:
+            url = request.get_json()['url']
+            result = binary(url, model)
+            response_body = {"class": result}
+            response = json.dumps(response_body, ensure_ascii=False)
             return response, 200
-    return "error", 405
+        except Exception as e:
+            print(e)
+            return "Internal Server Error", 500
+    return "Method Not Allowed", 405
 
 if __name__ == '__main__':
     app.run(debug=False, host= '0.0.0.0', port='3000')
