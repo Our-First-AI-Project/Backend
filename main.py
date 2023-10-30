@@ -1,6 +1,8 @@
 """웹 라이브러리"""
+
 from flask import Flask, request
 from flask_restful import Api
+
 from flask_cors import CORS
 import json
 import urllib3
@@ -101,6 +103,7 @@ def binary(url, model):
     X = []
     cropped_images = []
 
+
     binary_image_data = image_to_binary(url)
 
     if (binary_image_data == "ad" or binary_image_data == "non-ad"):
@@ -112,6 +115,8 @@ def binary(url, model):
     # google adsense에서 가져온 이미지가 204 No Content인 경우가 있음
     if image_nparray.size == 0:
         return "non-ad"
+
+
     
     # binary 형태로 읽은 파일을 decode -> 1D-array에서 3D-array로 변경
     image_bgr = cv2.imdecode(image_nparray, cv2.IMREAD_COLOR)
@@ -121,9 +126,11 @@ def binary(url, model):
     if image_bgr is None:
         return "non-ad"
 
+
     # 이미지가 너무 작은 경우 -> 제거하지 않는다. (small-image-error)
     if image_bgr.shape[0] < 64 | image_bgr.shape[1] < 64:
         return "non-ad"
+
 
     # BGR에서 RGB로 변경
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
@@ -133,6 +140,7 @@ def binary(url, model):
     for cropped_image in cropped_images:
         data = np.asarray(cropped_image)
         X.append(data)
+
 
     X = np.array(X)
     X = X.astype(float) / 255
@@ -164,6 +172,7 @@ def check():
             print(e)
             return "Internal Server Error", 500
     return "Method Not Allowed", 405
+
 
 if __name__ == '__main__':
     app.run(debug=False, host= '0.0.0.0', port='5000')
