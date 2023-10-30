@@ -94,8 +94,8 @@ def image_to_binary(url):
 
 def binary(url, model):
     
-    image_width = 180
-    image_height = 180
+    image_width = 220
+    image_height = 220
 
     is_ad = 0
     not_ad = 0
