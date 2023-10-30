@@ -22,7 +22,7 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-model = load_model('./binary_model_saved180.h5') # 경로 수정
+model = load_model('./binary_model_saved_iv40.h5') # 경로 수정
 
 def image_crop(file, image_width, image_height, cropped_width, cropped_height):
     cropped_images = []
